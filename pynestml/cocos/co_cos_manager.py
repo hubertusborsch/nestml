@@ -247,8 +247,8 @@ class CoCosManager(object):
         Checks if all shapes are only used in cond_sum, cur_sum, convolve.
         :param neuron: a single neuron object.
         :type neuron: ast_neuron
-        """
         CoCoNoShapesExceptInConvolve.check_co_co(neuron)
+        """
 
     @classmethod
     def check_not_two_neurons_across_units(cls, compilation_units):
