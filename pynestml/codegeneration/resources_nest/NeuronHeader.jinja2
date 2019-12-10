@@ -145,6 +145,9 @@ public:
   using nest::Node::handles_test_event;
   using nest::Node::handle;
 
+  using nest::Node::get_reach_max_activity;
+  bool get_reach_max_activity();
+
   /**
   * Used to validate that we can send {{outputEvent}} to desired target:port.
   */
