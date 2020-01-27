@@ -263,6 +263,19 @@ void {{neuronName}}::calibrate(){
 * Update and spike handling functions
 * ---------------------------------------------------------------- */
 
+{%- if neuronName == "iaf_psc_exp_nonlineardendrite" %}
+
+bool iaf_psc_exp_nonlineardendrite::get_reach_max_activity(){
+  return V_.reach_max_activity;
+}
+
+double iaf_psc_exp_nonlineardendrite::get_th_syn_mature_counter(){
+  return S_.th_syn_mature_counter;
+}
+
+{%- endif %}
+
+
 /*
  {{neuron.print_dynamics_comment('*')}}
  */
@@ -289,10 +302,6 @@ void {{neuronName}}::update(nest::Time const & origin,const long from, const lon
     B_.logger_.record_data(origin.get_steps()+lag);
   }
 
-}
-
-bool iaf_psc_exp_nonlineardendrite::get_reach_max_activity(){
-  return V_.reach_max_activity;
 }
 
 // Do not move this function as inline to h-file. It depends on
