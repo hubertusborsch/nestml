@@ -49,6 +49,11 @@
 
 #include "config.h"
 
+{% if norm_rng -%}
+// Includes from librandom:
+#include "normal_randomdev.h"
+{% endif -%}
+
 {% if useGSL %}
 #ifdef HAVE_GSL
 
@@ -226,7 +231,7 @@ private:
   *
   {{neuron.print_parameter_comment("*")}}
   *
-  * These are the parameters that can be set by the user through @c SetStatus.
+  * These are the parameters that can be set by the user through @c `node.set()`.
   * They are initialized from the model prototype when the node is created.
   * Parameters do not change during calls to @c update() and are not reset by
   * @c ResetNetwork.
@@ -262,7 +267,7 @@ private:
   *
   * These are the state variables that are advanced in time by calls to
   * @c update(). In many models, some or all of them can be set by the user
-  * through @c SetStatus. The state variables are initialized from the model
+  * through @c `node.set()`. The state variables are initialized from the model
   * prototype when the node is created. State variables are reset by @c ResetNetwork.
   *
   * @note State_ need neither copy constructor nor @c operator=(), since
@@ -351,24 +356,24 @@ private:
     /** buffers and sums up incoming spikes/currents */
     std::vector< nest::RingBuffer > spike_inputs_;
 
-    {% for inputLine in neuron.get_spike_buffers() %}
-    {{printer.print_buffer_array_getter(inputLine)}}
-    {{printer.print_buffer_declaration_value(inputLine)}};
+    {% for inputPort in neuron.get_spike_buffers() %}
+    {{printer.print_buffer_array_getter(inputPort)}}
+    {{printer.print_buffer_declaration_value(inputPort)}};
     {% endfor %}
     {% else -%}
-    {% for inputLine in neuron.get_spike_buffers() %}
-    {{printer.print_buffer_getter(inputLine, true)}}
-    {{printer.print_buffer_declaration_header(inputLine)}}
-    {{printer.print_buffer_declaration(inputLine)}};
-    {{printer.print_buffer_declaration_value(inputLine)}};
+    {% for inputPort in neuron.get_spike_buffers() %}
+    {{printer.print_buffer_getter(inputPort, true)}}
+    {{printer.print_buffer_declaration_header(inputPort)}}
+    {{printer.print_buffer_declaration(inputPort)}};
+    {{printer.print_buffer_declaration_value(inputPort)}};
     {% endfor %}
     {% endif -%}
 
-    {% for inputLine in neuron.get_current_buffers() -%}
-    {{printer.print_buffer_declaration_header(inputLine)}}
-    {{printer.print_buffer_declaration(inputLine)}};
-    {{printer.print_buffer_getter(inputLine, true)}}
-    {{printer.print_buffer_declaration_value(inputLine)}};
+    {% for inputPort in neuron.get_current_buffers() -%}
+    {{printer.print_buffer_declaration_header(inputPort)}}
+    {{printer.print_buffer_declaration(inputPort)}};
+    {{printer.print_buffer_getter(inputPort, true)}}
+    {{printer.print_buffer_declaration_value(inputPort)}};
     {% endfor %}
 
     {%- if useGSL -%}
@@ -446,6 +451,11 @@ private:
   {% if useGSL -%}
   friend int {{neuronName}}_dynamics( double, const double y[], double f[], void* pnode );
   {% endif %}
+
+  {%- if norm_rng -%}
+  librandom::NormalRandomDev normal_dev_; //!< random deviate generator
+  {% endif %}
+
 /** @} */
 }; /* neuron {{neuronName}} */
 
