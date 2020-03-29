@@ -269,7 +269,7 @@ bool iaf_psc_exp_nonlineardendrite::get_reach_max_activity(){
 }
 
 double iaf_psc_exp_nonlineardendrite::get_th_syn_mature_counter(){
-  return S_.th_syn_mature_counter;
+  return S_.ode_state[State_::I_c];
 }
 
 {%- endif %}
