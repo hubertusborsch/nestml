@@ -152,11 +152,8 @@ public:
 
   {%- if neuronName == "iaf_psc_exp_nonlineardendrite" %}
 
-  using nest::Node::get_reach_max_activity;
-  bool get_reach_max_activity();
-
-  using nest::Node::get_th_syn_mature_counter;
-  double get_th_syn_mature_counter();
+  using nest::Node::get_dendritic_firing_rate;
+  double get_dendritic_firing_rate();
 
   {%- endif %}
 
