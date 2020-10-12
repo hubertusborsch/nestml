@@ -247,6 +247,8 @@ class NESTCodeGenerator(CodeGenerator):
         """
         Replace all occurrences of variables names in NESTML format (e.g. `g_ex$''`)` with the ode-toolbox formatted
         variable name (e.g. `g_ex__DOLLAR__d__d`).
+
+        Variables aliasing convolutions should already have been covered by replace_convolution_aliasing_inlines().
         """
         def replace_var(_expr=None):
             if isinstance(_expr, ASTSimpleExpression) and _expr.is_variable():
@@ -339,6 +341,7 @@ class NESTCodeGenerator(CodeGenerator):
         self.remove_ode_definitions_from_equations_block(neuron)
         self.create_initial_values_for_kernels(neuron, [analytic_solver, numeric_solver], kernels)
         self.replace_variable_names_in_expressions(neuron, [analytic_solver, numeric_solver])
+        self.replace_convolution_aliasing_inlines(neuron)
         self.add_timestep_symbol(neuron)
 
         if self.analytic_solver[neuron.get_name()] is not None:
