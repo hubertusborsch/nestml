@@ -540,3 +540,14 @@ class CoCosTest(unittest.TestCase):
                          'CoCoShapeTypeInitialValues.nestml'))
         self.assertEqual(len(
             Logger.get_all_messages_of_level_and_or_neuron(model.get_neuron_list()[0], LoggingLevel.ERROR)), 4)
+
+    def test_valid_assign_to_inline_convolution(self):
+        """
+        Test the functionality of CoCoAllVariablesDefined.
+        """
+        Logger.set_logging_level(LoggingLevel.INFO)
+        model = ModelParser.parse_model(
+            os.path.join(os.path.realpath(os.path.join(os.path.dirname(__file__), 'valid')),
+                         'CoCoAssignmentToInlineExpression.nestml'))
+        self.assertEqual(len(
+            Logger.get_all_messages_of_level_and_or_neuron(model.get_neuron_list()[0], LoggingLevel.ERROR)), 0)
