@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # expression_type_calculation_test.py
 #
@@ -21,7 +22,7 @@ import os
 import unittest
 
 from pynestml.codegeneration.unit_converter import UnitConverter
-from pynestml.meta_model.ast_source_location import ASTSourceLocation
+from pynestml.utils.ast_source_location import ASTSourceLocation
 from pynestml.symbol_table.symbol_table import SymbolTable
 from pynestml.symbols.predefined_functions import PredefinedFunctions
 from pynestml.symbols.predefined_types import PredefinedTypes
@@ -52,7 +53,7 @@ class ExpressionTestVisitor(ASTVisitor):
         var_symbol = scope.resolve_to_symbol(var_name, SymbolKind.VARIABLE)
 
         _equals = var_symbol.get_type_symbol().equals(_expr.type) \
-         or var_symbol.get_type_symbol().differs_only_in_magnitude(_expr.type)
+            or var_symbol.get_type_symbol().differs_only_in_magnitude(_expr.type)
 
         message = 'line ' + str(_expr.get_source_position()) + ' : LHS = ' + \
                   var_symbol.get_type_symbol().get_symbol_name() + \

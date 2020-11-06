@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # symbol_table_resolution_test.py
 #
@@ -20,7 +21,7 @@
 import os
 import unittest
 
-from pynestml.meta_model.ast_source_location import ASTSourceLocation
+from pynestml.utils.ast_source_location import ASTSourceLocation
 from pynestml.symbol_table.scope import ScopeType
 from pynestml.symbol_table.symbol_table import SymbolTable
 from pynestml.symbols.predefined_functions import PredefinedFunctions

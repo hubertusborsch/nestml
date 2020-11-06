@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # symbol.py
 #
@@ -90,7 +91,7 @@ class Symbol(object):
         over position.
         :param source_position: the position of a different element.
         :type source_position: ast_source_location
-        :return: True, if defined before or at the sourcePosition, otherwise False.
+        :return: True, if defined before or at the source position, otherwise False.
         :rtype: bool
         """
         return self.get_referenced_object().get_source_position().before(source_position)

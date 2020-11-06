@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # model_parser.py
 #
@@ -50,14 +51,14 @@ from pynestml.meta_model.ast_logical_operator import ASTLogicalOperator
 from pynestml.meta_model.ast_nestml_compilation_unit import ASTNestMLCompilationUnit
 from pynestml.meta_model.ast_neuron import ASTNeuron
 from pynestml.meta_model.ast_ode_equation import ASTOdeEquation
-from pynestml.meta_model.ast_ode_function import ASTOdeFunction
-from pynestml.meta_model.ast_ode_shape import ASTOdeShape
+from pynestml.meta_model.ast_inline_expression import ASTInlineExpression
+from pynestml.meta_model.ast_kernel import ASTKernel
 from pynestml.meta_model.ast_output_block import ASTOutputBlock
 from pynestml.meta_model.ast_parameter import ASTParameter
 from pynestml.meta_model.ast_return_stmt import ASTReturnStmt
 from pynestml.meta_model.ast_simple_expression import ASTSimpleExpression
 from pynestml.meta_model.ast_small_stmt import ASTSmallStmt
-from pynestml.meta_model.ast_source_location import ASTSourceLocation
+from pynestml.utils.ast_source_location import ASTSourceLocation
 from pynestml.meta_model.ast_stmt import ASTStmt
 from pynestml.meta_model.ast_unary_operator import ASTUnaryOperator
 from pynestml.meta_model.ast_unit_type import ASTUnitType
@@ -72,6 +73,7 @@ from pynestml.visitors.ast_builder_visitor import ASTBuilderVisitor
 from pynestml.visitors.ast_higher_order_visitor import ASTHigherOrderVisitor
 from pynestml.visitors.ast_symbol_table_visitor import ASTSymbolTableVisitor
 from pynestml.utils.error_listener import NestMLErrorListener
+
 
 class ModelParser(object):
 
@@ -88,7 +90,8 @@ class ModelParser(object):
             input_file = FileStream(file_path)
         except IOError:
             code, message = Messages.get_input_path_not_found(path=file_path)
-            Logger.log_message(neuron=None, code=None, message=message, error_position=None, log_level=LoggingLevel.ERROR)
+            Logger.log_message(neuron=None, code=None, message=message,
+                               error_position=None, log_level=LoggingLevel.ERROR)
             return
         code, message = Messages.get_start_processing_file(file_path)
         Logger.log_message(neuron=None, code=code, message=message, error_position=None, log_level=LoggingLevel.INFO)
@@ -107,7 +110,8 @@ class ModelParser(object):
         stream.fill()
         if lexerErrorListener._error_occurred:
             code, message = Messages.get_lexer_error()
-            Logger.log_message(neuron=None, code=None, message=message, error_position=None, log_level=LoggingLevel.ERROR)
+            Logger.log_message(neuron=None, code=None, message=message,
+                               error_position=None, log_level=LoggingLevel.ERROR)
             return
         # parse the file
         parser = PyNestMLParser(None)
@@ -121,7 +125,8 @@ class ModelParser(object):
         compilation_unit = parser.nestMLCompilationUnit()
         if parserErrorListener._error_occurred:
             code, message = Messages.get_parser_error()
-            Logger.log_message(neuron=None, code=None, message=message, error_position=None, log_level=LoggingLevel.ERROR)
+            Logger.log_message(neuron=None, code=None, message=message,
+                               error_position=None, log_level=LoggingLevel.ERROR)
             return
 
         # create a new visitor and return the new AST
@@ -133,33 +138,16 @@ class ModelParser(object):
         log_to_restore = copy.deepcopy(Logger.get_log())
         counter = Logger.curr_message
 
-        # replace all derived variables through a computer processable names: e.g. g_in''' -> g_in__ddd
-        restore_differential_order = []
-        for ode in ASTUtils.get_all(ast, ASTOdeEquation):
-            lhs_variable = ode.get_lhs()
-            if lhs_variable.get_differential_order() > 0:
-                lhs_variable.differential_order = lhs_variable.get_differential_order() - 1
-                restore_differential_order.append(lhs_variable)
-
-        for shape in ASTUtils.get_all(ast, ASTOdeShape):
-            lhs_variable = shape.get_variable()
-            if lhs_variable.get_differential_order() > 0:
-                lhs_variable.differential_order = lhs_variable.get_differential_order() - 1
-                restore_differential_order.append(lhs_variable)
-
-        # than replace remaining variables
-        for variable in ASTUtils.get_all(ast, ASTVariable):
-            if variable.get_differential_order() > 0:
-                variable.set_name(variable.get_name() + "__" + "d" * variable.get_differential_order())
-                variable.differential_order = 0
-
-        # now also equations have no ' at lhs. replace every occurrence of last d to ' to compensate
-        for ode_variable in restore_differential_order:
-            ode_variable.differential_order = 1
         Logger.set_log(log_to_restore, counter)
         for neuron in ast.get_neuron_list():
             neuron.accept(ASTSymbolTableVisitor())
             SymbolTable.add_neuron_scope(neuron.get_name(), neuron.get_scope())
+
+        # store source paths
+        for neuron in ast.get_neuron_list():
+            neuron.file_path = file_path
+        ast.file_path = file_path
+
         return ast
 
     @classmethod
@@ -371,18 +359,18 @@ class ModelParser(object):
         return ret
 
     @classmethod
-    def parse_ode_function(cls, string):
-        # type: (str) -> ASTOdeFunction
+    def parse_inline_expression(cls, string):
+        # type: (str) -> ASTInlineExpression
         (builder, parser) = tokenize(string)
-        ret = builder.visit(parser.odeFunction())
+        ret = builder.visit(parser.inlineExpression())
         ret.accept(ASTHigherOrderVisitor(log_set_added_source_position))
         return ret
 
     @classmethod
-    def parse_ode_shape(cls, string):
-        # type: (str) -> ASTOdeShape
+    def parse_kernel(cls, string):
+        # type: (str) -> ASTKernel
         (builder, parser) = tokenize(string)
-        ret = builder.visit(parser.odeShape())
+        ret = builder.visit(parser.kernel())
         ret.accept(ASTHigherOrderVisitor(log_set_added_source_position))
         return ret
 

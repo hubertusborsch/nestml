@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # ast_builder_test.py
 #
@@ -23,7 +24,7 @@ import unittest
 from antlr4 import *
 
 from pynestml.meta_model.ast_nestml_compilation_unit import ASTNestMLCompilationUnit
-from pynestml.meta_model.ast_source_location import ASTSourceLocation
+from pynestml.utils.ast_source_location import ASTSourceLocation
 from pynestml.generated.PyNestMLLexer import PyNestMLLexer
 from pynestml.generated.PyNestMLParser import PyNestMLParser
 from pynestml.symbol_table.symbol_table import SymbolTable
@@ -49,7 +50,7 @@ class ASTBuildingTest(unittest.TestCase):
         for filename in os.listdir(os.path.realpath(os.path.join(os.path.dirname(__file__),
                                                                  os.path.join('..', 'models')))):
             if filename.endswith(".nestml"):
-                # print('Start creating AST for ' + filename + ' ...'),
+                print('Start creating AST for ' + filename + ' ...'),
                 input_file = FileStream(
                     os.path.join(os.path.dirname(__file__), os.path.join(os.path.join('..', 'models'), filename)))
                 lexer = PyNestMLLexer(input_file)

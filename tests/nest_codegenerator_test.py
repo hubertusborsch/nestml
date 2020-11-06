@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # nest_codegenerator_test.py
 #
@@ -20,7 +21,7 @@
 import os
 import unittest
 
-from pynestml.meta_model.ast_source_location import ASTSourceLocation
+from pynestml.utils.ast_source_location import ASTSourceLocation
 
 from pynestml.codegeneration.nest_codegenerator import NESTCodeGenerator
 from pynestml.frontend.frontend_configuration import FrontendConfiguration
@@ -35,7 +36,7 @@ from pynestml.utils.model_parser import ModelParser
 
 class CodeGeneratorTest(unittest.TestCase):
     """
-    Tests code generator with an IAF psc and cond model, both with alpha and delta shaped synaptic kernels
+    Tests code generator with an IAF psc and cond model, both with alpha and delta synaptic kernels
     """
 
     def setUp(self):
@@ -86,27 +87,6 @@ class CodeGeneratorTest(unittest.TestCase):
 
         nestCodeGenerator = NESTCodeGenerator()
         nestCodeGenerator.generate_code(compilation_unit.get_neuron_list())
-
-    def test_iaf_cond_alpha_implicit(self):
-        input_path = str(os.path.realpath(os.path.join(os.path.dirname(__file__), os.path.join(
-            os.pardir, 'models', 'iaf_cond_alpha.nestml'))))
-
-        params = list()
-        params.append('--input_path')
-        params.append(input_path)
-        params.append('--logging_level')
-        params.append('INFO')
-        params.append('--target_path')
-        params.append(self.target_path)
-        params.append('--dev')
-        FrontendConfiguration.parse_config(params)
-
-        compilation_unit = ModelParser.parse_model(input_path)
-        iaf_cond_alpha_implicit = list()
-        iaf_cond_alpha_implicit.append(compilation_unit.get_neuron_list()[1])
-
-        nestCodeGenerator = NESTCodeGenerator()
-        nestCodeGenerator.generate_code(iaf_cond_alpha_implicit)
 
     def test_iaf_cond_alpha_functional(self):
         input_path = str(os.path.realpath(os.path.join(os.path.dirname(__file__), os.path.join(

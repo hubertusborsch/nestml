@@ -1,6 +1,6 @@
-
+# -*- coding: utf-8 -*-
 #
-# messages.py.py
+# messages.py
 #
 # This file is part of NEST.
 #
@@ -19,6 +19,90 @@
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 from enum import Enum
+from typing import Tuple
+
+
+class MessageCode(Enum):
+    """
+    A mapping between codes and the corresponding messages.
+    """
+    START_PROCESSING_FILE = 0
+    TYPE_REGISTERED = 1
+    START_SYMBOL_TABLE_BUILDING = 2
+    FUNCTION_CALL_TYPE_ERROR = 3
+    TYPE_NOT_DERIVABLE = 4
+    IMPLICIT_CAST = 5
+    CAST_NOT_POSSIBLE = 6
+    TYPE_DIFFERENT_FROM_EXPECTED = 7
+    ADD_SUB_TYPE_MISMATCH = 8
+    BUFFER_SET_TO_CONDUCTANCE_BASED = 9
+    ODE_UPDATED = 10
+    NO_VARIABLE_FOUND = 11
+    SPIKE_BUFFER_TYPE_NOT_DEFINED = 12
+    NEURON_CONTAINS_ERRORS = 13
+    START_PROCESSING_NEURON = 14
+    CODE_SUCCESSFULLY_GENERATED = 15
+    MODULE_SUCCESSFULLY_GENERATED = 16
+    NO_CODE_GENERATED = 17
+    VARIABLE_USED_BEFORE_DECLARATION = 18
+    VARIABLE_DEFINED_RECURSIVELY = 19
+    VALUE_ASSIGNED_TO_BUFFER = 20
+    ARG_NOT_KERNEL_OR_EQUATION = 21
+    ARG_NOT_BUFFER = 22
+    NUMERATOR_NOT_ONE = 23
+    ORDER_NOT_DECLARED = 24
+    CURRENT_BUFFER_SPECIFIED = 25
+    BLOCK_NOT_CORRECT = 26
+    VARIABLE_NOT_IN_INIT = 27
+    WRONG_NUMBER_OF_ARGS = 28
+    NO_RHS = 29
+    SEVERAL_LHS = 30
+    FUNCTION_REDECLARED = 31
+    FUNCTION_NOT_DECLARED = 52
+    NO_ODE = 32
+    NO_INIT_VALUE = 33
+    NEURON_REDECLARED = 34
+    NEST_COLLISION = 35
+    KERNEL_OUTSIDE_CONVOLVE = 36
+    NAME_COLLISION = 37
+    TYPE_NOT_SPECIFIED = 38
+    NO_TYPE_ALLOWED = 39
+    NO_ASSIGNMENT_ALLOWED = 40
+    NOT_A_VARIABLE = 41
+    MULTIPLE_KEYWORDS = 42
+    VECTOR_IN_NON_VECTOR = 43
+    VARIABLE_REDECLARED = 44
+    SOFT_INCOMPATIBILITY = 45
+    HARD_INCOMPATIBILITY = 46
+    NO_RETURN = 47
+    NOT_LAST_STATEMENT = 48
+    SYMBOL_NOT_RESOLVED = 49
+    TYPE_MISMATCH = 50
+    NO_SEMANTICS = 51
+    NEURON_SOLVED_BY_GSL = 52
+    NEURON_ANALYZED = 53
+    NO_UNIT = 54
+    NOT_NEUROSCIENCE_UNIT = 55
+    INTERNAL_WARNING = 56
+    OPERATION_NOT_DEFINED = 57
+    CONVOLVE_NEEDS_BUFFER_PARAMETER = 58
+    INPUT_PATH_NOT_FOUND = 59
+    LEXER_ERROR = 60
+    PARSER_ERROR = 61
+    UNKNOWN_TARGET = 62
+    VARIABLE_WITH_SAME_NAME_AS_UNIT = 63
+    ANALYSING_TRANSFORMING_NEURON = 64
+    ODE_NEEDS_CONSISTENT_UNITS = 65
+    TEMPLATED_ARG_TYPES_INCONSISTENT = 66
+    MODULE_NAME_INFO = 67
+    TARGET_PATH_INFO = 68
+    ODE_FUNCTION_NEEDS_CONSISTENT_UNITS = 69
+    DELTA_FUNCTION_CANNOT_BE_MIXED = 70
+    UNKNOWN_TYPE = 71
+    ASTDATATYPE_TYPE_SYMBOL_COULD_NOT_BE_DERIVED = 72
+    KERNEL_WRONG_TYPE = 73
+    KERNEL_IV_WRONG_TYPE = 74
+    EMIT_SPIKE_FUNCTION_BUT_NO_OUTPUT_PORT = 75
 
 
 class Messages(object):
@@ -88,7 +172,8 @@ class Messages(object):
 
     @classmethod
     def get_binary_operation_type_could_not_be_derived(cls, lhs, operator, rhs, lhs_type, rhs_type):
-        message = 'The type of the expression (left-hand side = \'%s\'; binary operator = \'%s\'; right-hand side = \'%s\') could not be derived: left-hand side has type \'%s\' whereas right-hand side has type \'%s\'!' % (lhs, operator, rhs, lhs_type, rhs_type)
+        message = 'The type of the expression (left-hand side = \'%s\'; binary operator = \'%s\'; right-hand side = \'%s\') could not be derived: left-hand side has type \'%s\' whereas right-hand side has type \'%s\'!' % (
+            lhs, operator, rhs, lhs_type, rhs_type)
         return MessageCode.TYPE_MISMATCH, message
 
     @classmethod
@@ -317,7 +402,7 @@ class Messages(object):
             '(PyNestML.Utils.Message) Not a string provided (%s)!' % type(neuron_name)
         assert (path is not None and isinstance(path, str)), \
             '(PyNestML.Utils.Message) Not a string provided (%s)!' % type(path)
-        message = 'Successfully generated NEST code for the neuron: \'' + neuron_name + '\' in: \'' + path + '\' !'
+        message = 'Successfully generated code for the neuron: \'' + neuron_name + '\' in: \'' + path + '\' !'
         return MessageCode.CODE_SUCCESSFULLY_GENERATED, message
 
     @classmethod
@@ -391,9 +476,9 @@ class Messages(object):
         return MessageCode.VALUE_ASSIGNED_TO_BUFFER, message
 
     @classmethod
-    def get_first_arg_not_shape_or_equation(cls, func_name):
+    def get_first_arg_not_kernel_or_equation(cls, func_name):
         """
-        Indicates that the first argument of an rhs is not an equation or shape.
+        Indicates that the first argument of an rhs is not an equation or kernel.
         :param func_name: the name of the function
         :type func_name: str
         :return: a message
@@ -401,8 +486,8 @@ class Messages(object):
         """
         assert (func_name is not None and isinstance(func_name, str)), \
             '(PyNestML.Utils.Message) Not a string provided (%s)!' % type(func_name)
-        message = 'First argument of \'%s\' not a shape or equation!' % func_name
-        return MessageCode.ARG_NOT_SHAPE_OR_EQUATION, message
+        message = 'First argument of \'%s\' not a kernel or equation!' % func_name
+        return MessageCode.ARG_NOT_KERNEL_OR_EQUATION, message
 
     @classmethod
     def get_second_arg_not_a_buffer(cls, func_name):
@@ -478,9 +563,9 @@ class Messages(object):
         assert (missing is not None and isinstance(missing, bool)), \
             '(PyNestML.Utils.Message) Not a bool provided (%s)!' % type(missing)
         if missing:
-            message = block + ' block not defined, model not correct!'
+            message = block + ' block not defined!'
         else:
-            message = block + ' block not unique, model not correct!!'
+            message = block + ' block defined more than once!'
         return MessageCode.BLOCK_NOT_CORRECT, message
 
     @classmethod
@@ -626,18 +711,18 @@ class Messages(object):
         return MessageCode.NEST_COLLISION, message
 
     @classmethod
-    def get_shape_outside_convolve(cls, name):
+    def get_kernel_outside_convolve(cls, name):
         """
-        Indicates that a shape variable has been used outside a convolve call.
-        :param name: the name of the shape
+        Indicates that a kernel variable has been used outside a convolve call.
+        :param name: the name of the kernel
         :type name: str
         :return: message
         :rtype: (MessageCode,str)
         """
         assert (name is not None and isinstance(name, str)), \
             '(PyNestML.Utils.Message) Not a string provided (%s)!' % type(name)
-        message = 'Shape \'%s\' used outside convolve!' % name
-        return MessageCode.SHAPE_OUTSIDE_CONVOLVE, message
+        message = 'Kernel \'%s\' used outside convolve!' % name
+        return MessageCode.KERNEL_OUTSIDE_CONVOLVE, message
 
     @classmethod
     def get_compilation_unit_name_collision(cls, name, art1, art2):
@@ -860,7 +945,7 @@ class Messages(object):
         :return: a message
         :rtype: (MessageCode,str)
         """
-        message = 'Equations or shapes could not be solved. The model remains unchanged!'
+        message = 'Equations or kernels could not be solved. The model remains unchanged!'
         return MessageCode.NEURON_ANALYZED, message
 
     @classmethod
@@ -880,7 +965,7 @@ class Messages(object):
         :return: a message
         :rtype: (MessageCode,str)
         """
-        message = 'Shapes will be solved with GLS!'
+        message = 'Kernels will be solved with GLS!'
         return MessageCode.NEURON_ANALYZED, message
 
     @classmethod
@@ -933,14 +1018,16 @@ class Messages(object):
             message += 'd ' + name + ' / dt\''
         else:
             message += '\'' + str(name) + '\''
-        message += ' has inconsistent units: expected \'' + lhs_type.print_symbol() + '\', got \'' + rhs_type.print_symbol() + '\''
+        message += ' has inconsistent units: expected \'' + lhs_type.print_symbol() + '\', got \'' + \
+            rhs_type.print_symbol() + '\''
         return MessageCode.ODE_NEEDS_CONSISTENT_UNITS, message
 
     @classmethod
     def get_ode_function_needs_consistent_units(cls, name, declared_type, expression_type):
         assert (name is not None and isinstance(name, str)), \
             '(PyNestML.Utils.Message) Not a string provided (%s)!' % type(name)
-        message = 'ODE function definition for \'' + name + '\' has inconsistent units: expected \'' + declared_type.print_symbol() + '\', got \'' + expression_type.print_symbol() + '\''
+        message = 'ODE function definition for \'' + name + '\' has inconsistent units: expected \'' + \
+            declared_type.print_symbol() + '\', got \'' + expression_type.print_symbol() + '\''
         return MessageCode.ODE_FUNCTION_NEEDS_CONSISTENT_UNITS, message
 
     @classmethod
@@ -980,82 +1067,93 @@ class Messages(object):
         :return: a nes code,message tuple
         :rtype: (MessageCode,str)
         """
-        message = 'In function \'' + function_name + '\': actual derived type of templated parameter ' + str(failing_arg_idx + 1) + ' is \'' + failing_arg_type_str + '\', which is inconsistent with that of parameter(s) ' + ', '.join([str(_ + 1) for _ in other_args_idx]) + ', which have type \'' + other_type_str + '\''
+        message = 'In function \'' + function_name + '\': actual derived type of templated parameter ' + \
+            str(failing_arg_idx + 1) + ' is \'' + failing_arg_type_str + '\', which is inconsistent with that of parameter(s) ' + \
+            ', '.join([str(_ + 1) for _ in other_args_idx]) + ', which have type \'' + other_type_str + '\''
         return MessageCode.TEMPLATED_ARG_TYPES_INCONSISTENT, message
 
+    @classmethod
+    def delta_function_cannot_be_mixed(cls):
+        """
+        Delta function cannot be mixed with expressions.
+        """
+        message = "delta function cannot be mixed with expressions; please instead perform these operations on the convolve() function where this kernel is used"
+        return MessageCode.DELTA_FUNCTION_CANNOT_BE_MIXED, message
 
-class MessageCode(Enum):
-    """
-    A mapping between codes and the corresponding messages.
-    """
-    START_PROCESSING_FILE = 0
-    TYPE_REGISTERED = 1
-    START_SYMBOL_TABLE_BUILDING = 2
-    FUNCTION_CALL_TYPE_ERROR = 3
-    TYPE_NOT_DERIVABLE = 4
-    IMPLICIT_CAST = 5
-    CAST_NOT_POSSIBLE = 6
-    TYPE_DIFFERENT_FROM_EXPECTED = 7
-    ADD_SUB_TYPE_MISMATCH = 8
-    BUFFER_SET_TO_CONDUCTANCE_BASED = 9
-    ODE_UPDATED = 10
-    NO_VARIABLE_FOUND = 11
-    SPIKE_BUFFER_TYPE_NOT_DEFINED = 12
-    NEURON_CONTAINS_ERRORS = 13
-    START_PROCESSING_NEURON = 14
-    CODE_SUCCESSFULLY_GENERATED = 15
-    MODULE_SUCCESSFULLY_GENERATED = 16
-    NO_CODE_GENERATED = 17
-    VARIABLE_USED_BEFORE_DECLARATION = 18
-    VARIABLE_DEFINED_RECURSIVELY = 19
-    VALUE_ASSIGNED_TO_BUFFER = 20
-    ARG_NOT_SHAPE_OR_EQUATION = 21
-    ARG_NOT_BUFFER = 22
-    NUMERATOR_NOT_ONE = 23
-    ORDER_NOT_DECLARED = 24
-    CURRENT_BUFFER_SPECIFIED = 25
-    BLOCK_NOT_CORRECT = 26
-    VARIABLE_NOT_IN_INIT = 27
-    WRONG_NUMBER_OF_ARGS = 28
-    NO_RHS = 29
-    SEVERAL_LHS = 30
-    FUNCTION_REDECLARED = 31
-    FUNCTION_NOT_DECLARED = 52
-    NO_ODE = 32
-    NO_INIT_VALUE = 33
-    NEURON_REDECLARED = 34
-    NEST_COLLISION = 35
-    SHAPE_OUTSIDE_CONVOLVE = 36
-    NAME_COLLISION = 37
-    TYPE_NOT_SPECIFIED = 38
-    NO_TYPE_ALLOWED = 39
-    NO_ASSIGNMENT_ALLOWED = 40
-    NOT_A_VARIABLE = 41
-    MULTIPLE_KEYWORDS = 42
-    VECTOR_IN_NON_VECTOR = 43
-    VARIABLE_REDECLARED = 44
-    SOFT_INCOMPATIBILITY = 45
-    HARD_INCOMPATIBILITY = 46
-    NO_RETURN = 47
-    NOT_LAST_STATEMENT = 48
-    SYMBOL_NOT_RESOLVED = 49
-    TYPE_MISMATCH = 50
-    NO_SEMANTICS = 51
-    NEURON_SOLVED_BY_GSL = 52
-    NEURON_ANALYZED = 53
-    NO_UNIT = 54
-    NOT_NEUROSCIENCE_UNIT = 55
-    INTERNAL_WARNING = 56
-    OPERATION_NOT_DEFINED = 57
-    CONVOLVE_NEEDS_BUFFER_PARAMETER = 58
-    INPUT_PATH_NOT_FOUND = 59
-    LEXER_ERROR = 60
-    PARSER_ERROR = 61
-    UNKNOWN_TARGET = 62
-    VARIABLE_WITH_SAME_NAME_AS_UNIT = 63
-    ANALYSING_TRANSFORMING_NEURON = 64
-    ODE_NEEDS_CONSISTENT_UNITS = 65
-    TEMPLATED_ARG_TYPES_INCONSISTENT = 66
-    MODULE_NAME_INFO = 67
-    TARGET_PATH_INFO = 68
-    ODE_FUNCTION_NEEDS_CONSISTENT_UNITS = 69
+    @classmethod
+    def delta_function_one_arg(cls, deltafunc):
+        """
+        Delta function takes exactly one argument.
+        :param deltafunc: the delta function node
+        :type name: ASTFunctionCall
+        """
+        message = "delta function takes exactly one argument (time *t*); instead found " + ", ".join([
+            str(arg) for arg in deltafunc.get_args()])
+        return MessageCode.DELTA_FUNCTION_CANNOT_BE_MIXED, message
+
+    @classmethod
+    def unknown_type(cls, provided_type_str):
+        """
+        Unknown type or unit literal.
+        :param provided_type_str: the provided type as a string
+        :type provided_type_str: str
+        """
+        message = "Unknown type or unit literal: " + provided_type_str
+        return MessageCode.UNKNOWN_TYPE, message
+
+    @classmethod
+    def astdatatype_type_symbol_could_not_be_derived(cls):
+        """
+        Unknown type or unit literal.
+        :param provided_type_str: the provided type as a string
+        :type provided_type_str: str
+        """
+        message = "ASTDataType type symbol could not be derived"
+        return MessageCode.ASTDATATYPE_TYPE_SYMBOL_COULD_NOT_BE_DERIVED, message
+
+    @classmethod
+    def get_emit_spike_function_but_no_output_port(cls):
+        """
+        Indicates that an emit_spike() function was called, but no spiking output port has been defined.
+        :return: a (code, message) tuple
+        :rtype: (MessageCode, str)
+        """
+        message = 'emit_spike() function was called, but no spiking output port has been defined!'
+        return MessageCode.EMIT_SPIKE_FUNCTION_BUT_NO_OUTPUT_PORT, message
+
+    @classmethod
+    def get_kernel_wrong_type(cls, kernel_name: str, differential_order: int, actual_type: str) -> Tuple[MessageCode, str]:
+        """
+        Returns a message indicating that the type of a kernel is wrong.
+        :param kernel_name: the name of the kernel
+        :param differential_order: differential order of the kernel left-hand side, e.g. 2 if the kernel is g''
+        :param actual_type: the name of the actual type that was found in the model
+        """
+        assert (kernel_name is not None and isinstance(kernel_name, str)), \
+            '(PyNestML.Utils.Message) Not a string provided (%s)!' % type(kernel_name)
+        if differential_order == 0:
+            expected_type_str = "real or int"
+        else:
+            assert differential_order > 0
+            expected_type_str = "s**-%d" % differential_order
+        message = 'Kernel \'%s\' was found to be of type \'%s\' (should be %s)!' % (
+            kernel_name, actual_type, expected_type_str)
+        return MessageCode.KERNEL_WRONG_TYPE, message
+
+    @classmethod
+    def get_kernel_iv_wrong_type(cls, iv_name: str, actual_type: str, expected_type: str) -> Tuple[MessageCode, str]:
+        """
+        Returns a message indicating that the type of a kernel initial value is wrong.
+        :param iv_name: the name of the initial value variable
+        :param actual_type: the name of the actual type that was found in the model
+        :param expected_type: the name of the type that was expected
+        """
+        message = 'Initial value \'%s\' was found to be of type \'%s\' (should be %s)!' % (iv_name, actual_type, expected_type)
+        return MessageCode.KERNEL_IV_WRONG_TYPE, message
+
+
+    @classmethod
+    def get_could_not_determine_cond_based(cls, type_str, name):
+        message = "Unable to determine based on type '" + type_str + \
+            "' of variable '" + name + "' whether conductance-based or current-based"
+        return MessageCode.LEXER_ERROR, message

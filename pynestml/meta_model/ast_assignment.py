@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # ast_assignment.py
 #
@@ -17,9 +18,12 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
+
+from typing import Optional
+
 from pynestml.meta_model.ast_node import ASTNode
-from pynestml.meta_model.ast_source_location import ASTSourceLocation
 from pynestml.meta_model.ast_variable import ASTVariable
+from pynestml.meta_model.ast_expression import ASTExpression
 
 
 class ASTAssignment(ASTNode):
@@ -43,12 +47,15 @@ class ASTAssignment(ASTNode):
         rhs = None
     """
 
-    def __init__(self, lhs=None, is_direct_assignment=False, is_compound_sum=False, is_compound_minus=False,
-                 is_compound_product=False, is_compound_quotient=False, rhs=None, source_position=None):
+    def __init__(self, lhs: Optional[ASTVariable] = None, is_direct_assignment: bool = False, is_compound_sum: bool = False, is_compound_minus: bool = False,
+                 is_compound_product: bool = False, is_compound_quotient: bool = False, rhs: Optional[ASTExpression] = None, *args, **kwargs):
         """
         Standard constructor.
-        :param lhs: the left-hand side variable to which is assigned to.
-        :type lhs: ASTVariable
+
+        Parameters for superclass (ASTNode) can be passed through :python:`*args` and :python:`**kwargs`.
+
+        :param lhs: the left-hand side variable to which is assigned to
+        :type lhs: Optional[ASTVariable]
         :param is_direct_assignment: is a direct assignment
         :type is_direct_assignment: bool
         :param is_compound_sum: is a compound sum
@@ -60,11 +67,9 @@ class ASTAssignment(ASTNode):
         :param is_compound_quotient: is a compound quotient
         :type is_compound_quotient: bool
         :param rhs: an meta_model-rhs object
-        :type rhs: ast_expression
-        :param source_position: The source position of the assignment
-        :type source_position: ASTSourceLocation
+        :type rhs: Optional[ASTExpression]
         """
-        super(ASTAssignment, self).__init__(source_position)
+        super(ASTAssignment, self).__init__(*args, **kwargs)
         self.lhs = lhs
         self.is_direct_assignment = is_direct_assignment
         self.is_compound_sum = is_compound_sum
@@ -72,7 +77,37 @@ class ASTAssignment(ASTNode):
         self.is_compound_product = is_compound_product
         self.is_compound_quotient = is_compound_quotient
         self.rhs = rhs
-        return
+
+    def clone(self):
+        """
+        Return a clone ("deep copy") of this node.
+
+        :return: new AST node instance
+        :rtype: ASTAssignment
+        """
+        lhs_dup = None
+        if self.lhs:
+            lhs_dup = self.lhs.clone()
+        rhs_dup = None
+        if self.rhs:
+            rhs_dup = self.rhs.clone()
+        dup = ASTAssignment(lhs=lhs_dup,
+                            rhs=rhs_dup,
+                            is_direct_assignment=self.is_direct_assignment,
+                            is_compound_sum=self.is_compound_sum,
+                            is_compound_minus=self.is_compound_minus,
+                            is_compound_product=self.is_compound_product,
+                            is_compound_quotient=self.is_compound_quotient,
+                            # ASTNode common attriutes:
+                            source_position=self.source_position,
+                            scope=self.scope,
+                            comment=self.comment,
+                            pre_comments=[s for s in self.pre_comments],
+                            in_comment=self.in_comment,
+                            post_comments=[s for s in self.post_comments],
+                            implicit_conversion_factor=self.implicit_conversion_factor)
+
+        return dup
 
     def get_variable(self):
         """
@@ -100,7 +135,7 @@ class ASTAssignment(ASTNode):
         """
         if self.get_variable() is ast:
             return self
-        elif self.get_expression() is ast:
+        if self.get_expression() is ast:
             return self
         if self.get_variable().get_parent(ast) is not None:
             return self.get_variable().get_parent(ast)
@@ -118,13 +153,13 @@ class ASTAssignment(ASTNode):
         """
         if not isinstance(other, ASTAssignment):
             return False
-        return (self.get_variable().equals(other.get_variable()) and
-                self.is_compound_quotient == other.is_compound_quotient and
-                self.is_compound_product == other.is_compound_product and
-                self.is_compound_minus == other.is_compound_minus and
-                self.is_compound_sum == other.is_compound_sum and
-                self.is_direct_assignment == other.is_direct_assignment and
-                self.get_expression().equals(other.get_expression()))
+        return (self.get_variable().equals(other.get_variable())
+                and self.is_compound_quotient == other.is_compound_quotient
+                and self.is_compound_product == other.is_compound_product
+                and self.is_compound_minus == other.is_compound_minus
+                and self.is_compound_sum == other.is_compound_sum
+                and self.is_direct_assignment == other.is_direct_assignment
+                and self.get_expression().equals(other.get_expression()))
 
     def deconstruct_compound_assignment(self):
         """
@@ -193,6 +228,3 @@ class ASTAssignment(ASTNode):
                                                                source_position=self.get_source_position())
         result.update_scope(self.get_scope())
         return result
-
-    def resolve_lhs_variable_symbol(self):
-        return self.get_variable().resolve_in_own_scope()

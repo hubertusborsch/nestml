@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # ast_builder_visitor.py
 #
@@ -17,16 +18,18 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
+
 import ntpath
 import re
 
 from pynestml.cocos.co_co_each_block_unique_and_defined import CoCoEachBlockUniqueAndDefined
 from pynestml.cocos.co_cos_manager import CoCosManager
+from pynestml.frontend.frontend_configuration import FrontendConfiguration
 from pynestml.generated.PyNestMLParserVisitor import PyNestMLParserVisitor
 from pynestml.meta_model.ast_node_factory import ASTNodeFactory
-from pynestml.meta_model.ast_signal_type import ASTSignalType
-from pynestml.meta_model.ast_source_location import ASTSourceLocation
+from pynestml.utils.ast_source_location import ASTSourceLocation
 from pynestml.utils.logger import Logger
+from pynestml.utils.port_signal_type import PortSignalType
 from pynestml.visitors.ast_data_type_visitor import ASTDataTypeVisitor
 from pynestml.visitors.comment_collector_visitor import CommentCollectorVisitor
 
@@ -261,17 +264,17 @@ class ASTBuilderVisitor(PyNestMLParserVisitor):
                                                        source_position=create_source_pos(ctx))
         return node
 
-    # Visit a parse tree produced by PyNESTMLParser#odeFunction.
-    def visitOdeFunction(self, ctx):
+    # Visit a parse tree produced by PyNESTMLParser#inline.
+    def visitInlineExpression(self, ctx):
         is_recordable = (True if ctx.recordable is not None else False)
         variable_name = (str(ctx.variableName.text) if ctx.variableName is not None else None)
         data_type = (self.visit(ctx.dataType()) if ctx.dataType() is not None else None)
         expression = (self.visit(ctx.expression()) if ctx.expression() is not None else None)
-        ode_function = ASTNodeFactory.create_ast_ode_function(is_recordable=is_recordable, variable_name=variable_name,
-                                                              data_type=data_type, expression=expression,
-                                                              source_position=create_source_pos(ctx))
-        update_node_comments(ode_function, self.__comments.visit(ctx))
-        return ode_function
+        inlineExpr = ASTNodeFactory.create_ast_inline_expression(is_recordable=is_recordable, variable_name=variable_name,
+                                                                 data_type=data_type, expression=expression,
+                                                                 source_position=create_source_pos(ctx))
+        update_node_comments(inlineExpr, self.__comments.visit(ctx))
+        return inlineExpr
 
     # Visit a parse tree produced by PyNESTMLParser#equation.
     def visitOdeEquation(self, ctx):
@@ -281,13 +284,19 @@ class ASTBuilderVisitor(PyNestMLParserVisitor):
         update_node_comments(ode_equation, self.__comments.visit(ctx))
         return ode_equation
 
-    # Visit a parse tree produced by PyNESTMLParser#shape.
-    def visitOdeShape(self, ctx):
-        lhs = self.visit(ctx.lhs) if ctx.lhs is not None else None
-        rhs = self.visit(ctx.rhs) if ctx.rhs is not None else None
-        shape = ASTNodeFactory.create_ast_ode_shape(lhs=lhs, rhs=rhs, source_position=create_source_pos(ctx))
-        update_node_comments(shape, self.__comments.visit(ctx))
-        return shape
+    # Visit a parse tree produced by PyNESTMLParser#kernel.
+    def visitKernel(self, ctx):
+        var_nodes = []
+        expr_nodes = []
+        for var, expr in zip(ctx.variable(), ctx.expression()):
+            var_node = self.visit(var)
+            expr_node = self.visit(expr)
+            var_nodes.append(var_node)
+            expr_nodes.append(expr_node)
+        kernel = ASTNodeFactory.create_ast_kernel(
+            variables=var_nodes, expressions=expr_nodes, source_position=create_source_pos(ctx))
+        update_node_comments(kernel, self.__comments.visit(ctx))
+        return kernel
 
     # Visit a parse tree produced by PyNESTMLParser#block.
     def visitBlock(self, ctx):
@@ -436,7 +445,7 @@ class ASTBuilderVisitor(PyNestMLParserVisitor):
             artifact_name = ntpath.basename(ctx.start.source[1].fileName)
         else:
             artifact_name = 'parsed from string'
-        neuron = ASTNodeFactory.create_ast_neuron(name=name, body=body, source_position=create_source_pos(ctx),
+        neuron = ASTNodeFactory.create_ast_neuron(name=name + FrontendConfiguration.suffix, body=body, source_position=create_source_pos(ctx),
                                                   artifact_name=artifact_name)
         # update the comments
         update_node_comments(neuron, self.__comments.visit(ctx))
@@ -514,11 +523,11 @@ class ASTBuilderVisitor(PyNestMLParserVisitor):
         if ctx.odeEquation() is not None:
             for eq in ctx.odeEquation():
                 elements.append(eq)
-        if ctx.odeShape() is not None:
-            for shape in ctx.odeShape():
-                elements.append(shape)
-        if ctx.odeFunction() is not None:
-            for fun in ctx.odeFunction():
+        if ctx.kernel() is not None:
+            for kernel in ctx.kernel():
+                elements.append(kernel)
+        if ctx.inlineExpression() is not None:
+            for fun in ctx.inlineExpression():
                 elements.append(fun)
         ordered = list()
         while len(elements) > 0:
@@ -551,9 +560,9 @@ class ASTBuilderVisitor(PyNestMLParserVisitor):
                 input_qualifiers.append(self.visit(qual))
         data_type = self.visit(ctx.dataType()) if ctx.dataType() is not None else None
         if ctx.isCurrent:
-            signal_type = ASTSignalType.CURRENT
+            signal_type = PortSignalType.CURRENT
         elif ctx.isSpike:
-            signal_type = ASTSignalType.SPIKE
+            signal_type = PortSignalType.SPIKE
         else:
             signal_type = None
         ret = ASTNodeFactory.create_ast_input_port(name=name, size_parameter=size_parameter, data_type=data_type,
@@ -573,11 +582,11 @@ class ASTBuilderVisitor(PyNestMLParserVisitor):
     def visitOutputBlock(self, ctx):
         source_pos = create_source_pos(ctx)
         if ctx.isSpike is not None:
-            ret = ASTNodeFactory.create_ast_output_block(s_type=ASTSignalType.SPIKE, source_position=source_pos)
+            ret = ASTNodeFactory.create_ast_output_block(s_type=PortSignalType.SPIKE, source_position=source_pos)
             update_node_comments(ret, self.__comments.visit(ctx))
             return ret
         elif ctx.isCurrent is not None:
-            ret = ASTNodeFactory.create_ast_output_block(s_type=ASTSignalType.CURRENT, source_position=source_pos)
+            ret = ASTNodeFactory.create_ast_output_block(s_type=PortSignalType.CURRENT, source_position=source_pos)
             update_node_comments(ret, self.__comments.visit(ctx))
             return ret
         else:

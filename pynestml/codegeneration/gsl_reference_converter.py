@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # gsl_reference_converter.py
 #
@@ -30,7 +31,9 @@ from pynestml.symbols.predefined_variables import PredefinedVariables
 from pynestml.symbols.symbol import SymbolKind
 from pynestml.symbols.unit_type_symbol import UnitTypeSymbol
 from pynestml.utils.ast_utils import ASTUtils
+from pynestml.utils.logger import Logger, LoggingLevel
 from pynestml.utils.messages import Messages
+
 
 class GSLReferenceConverter(IReferenceConverter):
     """
@@ -46,7 +49,7 @@ class GSLReferenceConverter(IReferenceConverter):
         """
         self.is_upper_bound = is_upper_bound
 
-    def convert_name_reference(self, ast_variable):
+    def convert_name_reference(self, ast_variable: ASTVariable, prefix: str = ''):
         """
         Converts a single name reference to a gsl processable format.
         :param ast_variable: a single variable
@@ -67,7 +70,7 @@ class GSLReferenceConverter(IReferenceConverter):
 
             code, message = Messages.get_could_not_resolve(variable_name)
             Logger.log_message(log_level=LoggingLevel.ERROR, code=code, message=message,
-                              error_position=variable.get_source_position())
+                               error_position=ast_variable.get_source_position())
             return ''
 
         if symbol.is_init_values():
@@ -81,7 +84,7 @@ class GSLReferenceConverter(IReferenceConverter):
             s = ""
             if not units_conversion_factor == 1:
                 s += "(" + str(units_conversion_factor) + " * "
-            s += 'node.B_.' + NestNamesConverter.buffer_value(symbol)
+            s += prefix + 'B_.' + NestNamesConverter.buffer_value(symbol)
             if symbol.has_vector_parameter():
                 s += '[i]'
             if not units_conversion_factor == 1:
@@ -92,9 +95,9 @@ class GSLReferenceConverter(IReferenceConverter):
             return variable_name
 
         if symbol.has_vector_parameter():
-            return 'node.get_' + variable_name + '()[i]'
+            return prefix + 'get_' + variable_name + '()[i]'
 
-        return 'node.get_' + variable_name + '()'
+        return prefix + 'get_' + variable_name + '()'
 
     def convert_function_call(self, function_call, prefix=''):
         """Convert a single function call to C++ GSL API syntax.
@@ -174,7 +177,8 @@ class GSLReferenceConverter(IReferenceConverter):
                    'nest::kernel().event_delivery_manager.send(*this, se, lag)'
 
         # suppress prefix for misc. predefined functions
-        function_is_predefined = PredefinedFunctions.get_function(function_name)  # check if function is "predefined" purely based on the name, as we don't have access to the function symbol here
+        # check if function is "predefined" purely based on the name, as we don't have access to the function symbol here
+        function_is_predefined = PredefinedFunctions.get_function(function_name)
         if function_is_predefined:
             prefix = ''
 
