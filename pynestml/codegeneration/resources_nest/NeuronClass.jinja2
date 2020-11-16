@@ -316,6 +316,15 @@ void {{neuronName}}::calibrate() {
 * Update and spike handling functions
 * ---------------------------------------------------------------- */
 
+{%- if neuronName == "iaf_psc_exp_nonlineardendrite" %}
+
+double iaf_psc_exp_nonlineardendrite::get_dendritic_firing_rate(){
+  return S_.I_c;
+}
+
+{%- endif %}
+
+
 /*
  {{neuron.print_dynamics_comment('*')}}
  */
