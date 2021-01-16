@@ -150,7 +150,7 @@ public:
   using nest::Node::handles_test_event;
   using nest::Node::handle;
 
-  {%- if neuronName == "iaf_psc_exp_nonlineardendrite" %}
+  {%- if neuronName == "iaf_psc_exp_nonlineardendrite" or neuronName == "iaf_cond_nonlineardendrite" %}
 
   using nest::Node::get_dendritic_firing_rate;
   double get_dendritic_firing_rate();
