@@ -30,7 +30,7 @@ lexer grammar PyNestMLLexer;
 
   ML_COMMENT : ('/*' .*? '*/' | '"""' .*? '"""')-> channel(2);
 
-  NEWLINE : ('\r' '\n' | '\r' | '\n' ) -> channel(3);
+  NEWLINE : '\r'? '\n';
 
   WS : (' ' | '\t')->channel(1);
 
@@ -125,7 +125,7 @@ lexer grammar PyNestMLLexer;
   * String literals are always enclosed in "...".
   */
 
-  STRING_LITERAL : '"' ( [a-zA-Z] | '_' | '$' )( [a-zA-Z] | '_' | [0-9] | '$' )* '"';
+  STRING_LITERAL : '"' ('\\' (([ \t]+ ('\r'? '\n')?)|.) | ~[\\\r\n"])* '"';
 
   NAME : ( [a-zA-Z] | '_' | '$' )( [a-zA-Z] | '_' | [0-9] | '$' )*;
 
