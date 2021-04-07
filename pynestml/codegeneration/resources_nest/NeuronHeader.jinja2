@@ -157,6 +157,13 @@ public:
 
   {%- endif %}
 
+  {%- if neuronName == "iaf_cond_nonlineardendrite" %}
+
+  using nest::Node::get_dendritic_firing_rate;
+  double get_dendritic_firing_rate();
+
+  {%- endif %}
+
   /**
   * Used to validate that we can send {{outputEvent}} to desired target:port.
   */
