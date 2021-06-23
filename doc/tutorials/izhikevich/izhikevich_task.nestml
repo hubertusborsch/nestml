@@ -1,6 +1,6 @@
 neuron izhikevich_tutorial:
 
-  initial_values:
+  state:
     v mV = -65 mV    # Membrane potential in mV
 
     # TODO: add new variable u with the type real
@@ -19,7 +19,7 @@ neuron izhikevich_tutorial:
 
   input:
     spikes mV <- spike
-    I_e pA <- current
+    I_e pA <- continuous
   end
 
   output: spike

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# co_co_buffer_data_type.py
+# co_co_inline_max_one_lhs.py
 #
 # This file is part of NEST.
 #
@@ -20,25 +20,19 @@
 # along with NEST.  If not, see <http://www.gnu.org/licenses/>.
 
 from pynestml.cocos.co_co import CoCo
+from pynestml.meta_model.ast_declaration import ASTDeclaration
 from pynestml.utils.logger import LoggingLevel, Logger
 from pynestml.utils.messages import Messages
 from pynestml.visitors.ast_visitor import ASTVisitor
 
 
-class CoCoBufferDataType(CoCo):
+class CoCoInlineMaxOneLhs(CoCo):
     """
-    This coco ensures that all spike and current buffers have a data type stated.
+    This coco ensures that whenever an inline expression is declared, only one left-hand side is present.
     Allowed:
-        input:
-            spikeIn integer <- inhibitory spike
-            current pA <- current
-        end
-
+        inline V_rest mV = V_m - 55mV
     Not allowed:
-        input:
-            spikeIn <- inhibitory spike
-            current <- current
-        end
+        inline V_reset, V_rest mV = V_m - 55mV
     """
 
     @classmethod
@@ -48,21 +42,21 @@ class CoCoBufferDataType(CoCo):
         :param node: a single neuron instance.
         :type node: ast_neuron
         """
-        node.accept(BufferDatatypeVisitor())
+        node.accept(InlineMaxOneLhs())
 
 
-class BufferDatatypeVisitor(ASTVisitor):
+class InlineMaxOneLhs(ASTVisitor):
     """
-    This visitor checks if each buffer has a datatype selected according to the coco.
+    This visitor ensures that every inline expression has exactly one lhs.
     """
 
-    def visit_input_port(self, node):
+    def visit_declaration(self, node: ASTDeclaration):
         """
-        Checks the coco on the current node.
-        :param node: a single input port node.
-        :type node: ASTInputPort
+        Checks the coco.
+        :param node: a single declaration.
         """
-        if not node.has_datatype():
-            code, message = Messages.get_data_type_not_specified(node.get_name())
-            Logger.log_message(error_position=node.get_source_position(), log_level=LoggingLevel.ERROR,
+        if node.is_inline_expression and len(node.get_variables()) > 1:
+            code, message = Messages.get_several_lhs(list((var.get_name() for var in node.get_variables())))
+            Logger.log_message(error_position=node.get_source_position(),
+                               log_level=LoggingLevel.ERROR,
                                code=code, message=message)

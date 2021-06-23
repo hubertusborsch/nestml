@@ -21,6 +21,7 @@ jobs:
       # Install dependencies
       - name: Install apt dependencies
         run: |
+          sudo apt-get update
           sudo apt-get install libltdl7-dev libgsl0-dev libncurses5-dev libreadline6-dev pkg-config
           sudo apt-get install python3-all-dev python3-matplotlib python3-numpy python3-scipy
 
@@ -47,11 +48,6 @@ jobs:
           python -m pip install --upgrade pip pytest
           python -m pip install -r requirements.txt
           python -m pip install pycodestyle
-
-      - name: Install latest ode-toolbox
-        run: |
-          python -m pip uninstall --yes odetoolbox
-          python -m pip install git+https://github.com/nest/ode-toolbox.git
 
       - name: Install NESTML
         run: |
@@ -87,7 +83,6 @@ jobs:
           echo "NEST_INSTALL = $NEST_INSTALL"
 
           git clone --depth=1 https://github.com/nest/nest-simulator
-
           mkdir nest_install
           echo "NEST_INSTALL=$NEST_INSTALL" >> $GITHUB_ENV
           cd nest_install

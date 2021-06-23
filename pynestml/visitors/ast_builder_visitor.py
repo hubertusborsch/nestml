@@ -353,7 +353,7 @@ class ASTBuilderVisitor(PyNestMLParserVisitor):
     # Visit a parse tree produced by PyNESTMLParser#declaration.
     def visitDeclaration(self, ctx):
         is_recordable = (True if ctx.isRecordable is not None else False)
-        is_function = (True if ctx.isFunction is not None else False)
+        is_inline_expression = (True if ctx.isInlineExpression is not None else False)
         variables = list()
         for var in ctx.variable():
             variables.append(self.visit(var))
@@ -361,7 +361,7 @@ class ASTBuilderVisitor(PyNestMLParserVisitor):
         size_param = str(ctx.sizeParameter.text) if ctx.sizeParameter is not None else None
         expression = self.visit(ctx.rhs) if ctx.rhs is not None else None
         invariant = self.visit(ctx.invariant) if ctx.invariant is not None else None
-        declaration = ASTNodeFactory.create_ast_declaration(is_recordable=is_recordable, is_function=is_function,
+        declaration = ASTNodeFactory.create_ast_declaration(is_recordable=is_recordable, is_inline_expression=is_inline_expression,
                                                             variables=variables, data_type=data_type,
                                                             size_parameter=size_param,
                                                             expression=expression,
@@ -502,13 +502,11 @@ class ASTBuilderVisitor(PyNestMLParserVisitor):
         block_type = ctx.blockType.text  # the text field stores the exact name of the token, e.g., state
         source_pos = create_source_pos(ctx)
         if block_type == 'state':
-            ret = ASTNodeFactory.create_ast_block_with_variables(True, False, False, False, declarations, source_pos)
+            ret = ASTNodeFactory.create_ast_block_with_variables(True, False, False, declarations, source_pos)
         elif block_type == 'parameters':
-            ret = ASTNodeFactory.create_ast_block_with_variables(False, True, False, False, declarations, source_pos)
+            ret = ASTNodeFactory.create_ast_block_with_variables(False, True, False, declarations, source_pos)
         elif block_type == 'internals':
-            ret = ASTNodeFactory.create_ast_block_with_variables(False, False, True, False, declarations, source_pos)
-        elif block_type == 'initial_values':
-            ret = ASTNodeFactory.create_ast_block_with_variables(False, False, False, True, declarations, source_pos)
+            ret = ASTNodeFactory.create_ast_block_with_variables(False, False, True, declarations, source_pos)
         else:
             raise RuntimeError('(PyNestML.ASTBuilder) Unspecified type (=%s) of var-block.' % str(ctx.blockType))
         update_node_comments(ret, self.__comments.visit(ctx))
@@ -562,8 +560,8 @@ class ASTBuilderVisitor(PyNestMLParserVisitor):
             for qual in ctx.inputQualifier():
                 input_qualifiers.append(self.visit(qual))
         data_type = self.visit(ctx.dataType()) if ctx.dataType() is not None else None
-        if ctx.isCurrent:
-            signal_type = PortSignalType.CURRENT
+        if ctx.isContinuous:
+            signal_type = PortSignalType.CONTINUOUS
         elif ctx.isSpike:
             signal_type = PortSignalType.SPIKE
         else:
@@ -588,12 +586,13 @@ class ASTBuilderVisitor(PyNestMLParserVisitor):
             ret = ASTNodeFactory.create_ast_output_block(s_type=PortSignalType.SPIKE, source_position=source_pos)
             update_node_comments(ret, self.__comments.visit(ctx))
             return ret
-        elif ctx.isCurrent is not None:
-            ret = ASTNodeFactory.create_ast_output_block(s_type=PortSignalType.CURRENT, source_position=source_pos)
+
+        if ctx.isContinuous is not None:
+            ret = ASTNodeFactory.create_ast_output_block(s_type=PortSignalType.CONTINUOUS, source_position=source_pos)
             update_node_comments(ret, self.__comments.visit(ctx))
             return ret
-        else:
-            raise RuntimeError('(PyNestML.ASTBuilder) Type of output buffer not recognized.')
+
+        raise RuntimeError('(PyNestML.ASTBuilder) Type of output buffer not recognized.')
 
     # Visit a parse tree produced by PyNESTMLParser#function.
     def visitFunction(self, ctx):
