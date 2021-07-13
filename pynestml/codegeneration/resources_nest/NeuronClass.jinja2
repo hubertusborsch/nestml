@@ -319,7 +319,7 @@ void {{neuronName}}::calibrate() {
 {%- if neuronName == "iaf_psc_exp_nonlineardendrite" %}
 
 double iaf_psc_exp_nonlineardendrite::get_dendritic_firing_rate(){
-  return S_.ode_state[State_::I_c];
+  return S_.ode_state[State_::z];
 }
 
 {%- endif %}
@@ -327,7 +327,7 @@ double iaf_psc_exp_nonlineardendrite::get_dendritic_firing_rate(){
 {%- if neuronName == "iaf_cond_nonlineardendrite" %}
 
 double iaf_cond_nonlineardendrite::get_dendritic_firing_rate(){
-  return S_.ode_state[State_::I_c];
+  return S_.ode_state[State_::z];
 }
 
 {%- endif %}
