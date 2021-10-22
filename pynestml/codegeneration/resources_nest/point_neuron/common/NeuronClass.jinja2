@@ -370,6 +370,22 @@ void {{neuronName}}::calibrate() {
 //   Update and spike handling functions
 // ---------------------------------------------------------------------------
 
+{%- if neuronName == "iaf_psc_exp_nonlineardendrite" %}
+
+double iaf_psc_exp_nonlineardendrite::get_dendritic_firing_rate(){
+  return S_.ode_state[State_::z];
+}
+
+{%- endif %}
+
+{%- if neuronName == "iaf_cond_nonlineardendrite" %}
+
+double iaf_cond_nonlineardendrite::get_dendritic_firing_rate(){
+  return S_.ode_state[State_::z];
+}
+
+{%- endif %}
+
 {% if useGSL %}
 {%- include "directives/GSLDifferentiationFunction.jinja2" %}
 {% endif %}
