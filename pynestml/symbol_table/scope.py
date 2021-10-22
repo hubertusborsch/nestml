@@ -357,3 +357,4 @@ class ScopeType(Enum):
     GLOBAL = 1
     UPDATE = 2
     FUNCTION = 3
+    ON_RECEIVE = 4

@@ -27,41 +27,40 @@ class MessageCode(Enum):
     A mapping between codes and the corresponding messages.
     """
     START_PROCESSING_FILE = 0
-    TYPE_REGISTERED = 1
-    START_SYMBOL_TABLE_BUILDING = 2
-    FUNCTION_CALL_TYPE_ERROR = 3
-    TYPE_NOT_DERIVABLE = 4
-    IMPLICIT_CAST = 5
-    CAST_NOT_POSSIBLE = 6
-    TYPE_DIFFERENT_FROM_EXPECTED = 7
-    ADD_SUB_TYPE_MISMATCH = 8
-    BUFFER_SET_TO_CONDUCTANCE_BASED = 9
-    ODE_UPDATED = 10
-    NO_VARIABLE_FOUND = 11
-    SPIKE_BUFFER_TYPE_NOT_DEFINED = 12
-    NEURON_CONTAINS_ERRORS = 13
-    START_PROCESSING_NEURON = 14
-    CODE_SUCCESSFULLY_GENERATED = 15
-    MODULE_SUCCESSFULLY_GENERATED = 16
-    NO_CODE_GENERATED = 17
-    VARIABLE_USED_BEFORE_DECLARATION = 18
-    VARIABLE_DEFINED_RECURSIVELY = 19
-    VALUE_ASSIGNED_TO_BUFFER = 20
-    ARG_NOT_KERNEL_OR_EQUATION = 21
-    ARG_NOT_BUFFER = 22
-    NUMERATOR_NOT_ONE = 23
-    ORDER_NOT_DECLARED = 24
-    CURRENT_BUFFER_SPECIFIED = 25
-    BLOCK_NOT_CORRECT = 26
-    VARIABLE_NOT_IN_INIT = 27
-    WRONG_NUMBER_OF_ARGS = 28
-    NO_RHS = 29
-    SEVERAL_LHS = 30
-    FUNCTION_REDECLARED = 31
-    FUNCTION_NOT_DECLARED = 52
+    START_SYMBOL_TABLE_BUILDING = 1
+    FUNCTION_CALL_TYPE_ERROR = 2
+    TYPE_NOT_DERIVABLE = 3
+    IMPLICIT_CAST = 4
+    CAST_NOT_POSSIBLE = 5
+    TYPE_DIFFERENT_FROM_EXPECTED = 6
+    ADD_SUB_TYPE_MISMATCH = 7
+    BUFFER_SET_TO_CONDUCTANCE_BASED = 8
+    ODE_UPDATED = 9
+    NO_VARIABLE_FOUND = 10
+    SPIKE_INPUT_PORT_TYPE_NOT_DEFINED = 11
+    MODEL_CONTAINS_ERRORS = 12
+    START_PROCESSING_MODEL = 13
+    CODE_SUCCESSFULLY_GENERATED = 14
+    MODULE_SUCCESSFULLY_GENERATED = 15
+    NO_CODE_GENERATED = 16
+    VARIABLE_USED_BEFORE_DECLARATION = 17
+    VARIABLE_DEFINED_RECURSIVELY = 18
+    VALUE_ASSIGNED_TO_BUFFER = 19
+    ARG_NOT_KERNEL_OR_EQUATION = 20
+    ARG_NOT_SPIKE_INPUT = 21
+    NUMERATOR_NOT_ONE = 22
+    ORDER_NOT_DECLARED = 23
+    CONTINUOUS_INPUT_PORT_WITH_QUALIFIERS = 24
+    BLOCK_NOT_CORRECT = 25
+    VARIABLE_NOT_IN_STATE_BLOCK = 26
+    WRONG_NUMBER_OF_ARGS = 27
+    NO_RHS = 28
+    SEVERAL_LHS = 29
+    FUNCTION_REDECLARED = 30
+    FUNCTION_NOT_DECLARED = 31
     NO_ODE = 32
     NO_INIT_VALUE = 33
-    NEURON_REDECLARED = 34
+    MODEL_REDECLARED = 34
     NEST_COLLISION = 35
     KERNEL_OUTSIDE_CONVOLVE = 36
     NAME_COLLISION = 37
@@ -77,6 +76,8 @@ class MessageCode(Enum):
     NO_RETURN = 47
     NOT_LAST_STATEMENT = 48
     SYMBOL_NOT_RESOLVED = 49
+    SYNAPSE_SOLVED_BY_GSL = 520
+    SYNAPSE_ANALYZED = 530
     TYPE_MISMATCH = 50
     NO_SEMANTICS = 51
     NEURON_SOLVED_BY_GSL = 52
@@ -104,6 +105,11 @@ class MessageCode(Enum):
     KERNEL_IV_WRONG_TYPE = 74
     EMIT_SPIKE_FUNCTION_BUT_NO_OUTPUT_PORT = 75
     NO_FILES_IN_INPUT_PATH = 76
+    STATE_VARIABLES_NOT_INITIALZED = 77
+    EQUATIONS_DEFINED_BUT_INTEGRATE_ODES_NOT_CALLED = 78
+    TEMPLATE_ROOT_PATH_CREATED = 79
+    PRIORITY_DEFINED_FOR_ONLY_ONE_EVENT_HANDLER = 79
+    REPEATED_PRIORITY_VALUE = 80
 
 
 class Messages:
@@ -123,18 +129,6 @@ class Messages:
         """
         message = 'Start processing \'' + file_path + '\'!'
         return MessageCode.START_PROCESSING_FILE, message
-
-    @classmethod
-    def get_new_type_registered(cls, type_name):
-        """
-        Returns a message which indicates that a new type has been registered.
-        :param type_name: a type name
-        :type type_name: str
-        :return: message code tuple
-        :rtype: (MessageCode,str)
-        """
-        message = 'New type registered \'%s\'!' % type_name
-        return MessageCode.TYPE_REGISTERED, message
 
     @classmethod
     def get_input_path_not_found(cls, path):
@@ -159,6 +153,11 @@ class Messages:
     @classmethod
     def get_lexer_error(cls):
         message = 'Error occurred during lexing: abort'
+        return MessageCode.LEXER_ERROR, message
+
+    @classmethod
+    def get_could_not_determine_cond_based(cls, type_str, name):
+        message = "Unable to determine based on type '" + type_str + "' of variable '" + name + "' whether conductance-based or current-based"
         return MessageCode.LEXER_ERROR, message
 
     @classmethod
@@ -346,64 +345,59 @@ class Messages:
         return MessageCode.NO_VARIABLE_FOUND, message
 
     @classmethod
-    def get_buffer_type_not_defined(cls, buffer_name):
+    def get_input_port_type_not_defined(cls, input_port_name: str):
         """
-        Returns a message indicating that a buffer type has not been defined, thus nS is assumed.
-        :param buffer_name: a buffer name
-        :type buffer_name: str
+        Returns a message indicating that a input_port type has not been defined, thus nS is assumed.
+        :param input_port_name: a input_port name
         :return: a message
         :rtype: (MessageCode,str)
         """
-        assert (buffer_name is not None and isinstance(buffer_name, str)), \
-            '(PyNestML.Utils.Message) Not a string provided (%s)!' % type(buffer_name)
+        assert (input_port_name is not None and isinstance(input_port_name, str)), \
+            '(PyNestML.Utils.Message) Not a string provided (%s)!' % type(input_port_name)
         from pynestml.symbols.predefined_types import PredefinedTypes
-        message = 'No buffer type declared of \'%s\'!' % buffer_name
-        return MessageCode.SPIKE_BUFFER_TYPE_NOT_DEFINED, message
+        message = 'No type declared for spiking input port \'%s\'!' % input_port_name
+        return MessageCode.SPIKE_INPUT_PORT_TYPE_NOT_DEFINED, message
 
     @classmethod
-    def get_neuron_contains_errors(cls, neuron_name):
+    def get_model_contains_errors(cls, model_name: str) -> Tuple[MessageCode, str]:
         """
-        Returns a message indicating that a neuron contains errors thus no code is generated.
-        :param neuron_name: the name of the neuron
-        :type neuron_name: str
+        Returns a message indicating that a model contains errors thus no code is generated.
+        :param model_name: the name of the model
         :return: a message
-        :rtype: (MessageCode,str)
         """
-        assert (neuron_name is not None and isinstance(neuron_name, str)), \
-            '(PyNestML.Utils.Message) Not a string provided (%s)!' % type(neuron_name)
-        message = 'Neuron \'' + neuron_name + '\' contains errors. No code generated!'
-        return MessageCode.NEURON_CONTAINS_ERRORS, message
+        assert (model_name is not None and isinstance(model_name, str)), \
+            '(PyNestML.Utils.Message) Not a string provided (%s)!' % type(model_name)
+        message = 'Model \'' + model_name + '\' contains errors. No code generated!'
+        return MessageCode.MODEL_CONTAINS_ERRORS, message
 
     @classmethod
-    def get_start_processing_neuron(cls, neuron_name):
+    def get_start_processing_model(cls, model_name: str) -> Tuple[MessageCode, str]:
         """
-        Returns a message indicating that the processing of a neuron is started.
-        :param neuron_name: the name of the neuron
-        :type neuron_name: str
+        Returns a message indicating that the processing of a model is started.
+        :param model_name: the name of the model
         :return: a message
-        :rtype: (MessageCode,str)
         """
-        assert (neuron_name is not None and isinstance(neuron_name, str)), \
-            '(PyNestML.Utils.Message) Not a string provided (%s)!' % type(neuron_name)
-        message = 'Starts processing of the neuron \'' + neuron_name + '\''
-        return MessageCode.START_PROCESSING_NEURON, message
+        assert (model_name is not None and isinstance(model_name, str)), \
+            '(PyNestML.Utils.Message) Not a string provided (%s)!' % type(model_name)
+        message = 'Starts processing of the model \'' + model_name + '\''
+        return MessageCode.START_PROCESSING_MODEL, message
 
     @classmethod
-    def get_code_generated(cls, neuron_name, path):
+    def get_code_generated(cls, model_name, path):
         """
         Returns a message indicating that code has been successfully generated for a neuron in a certain path.
-        :param neuron_name: the name of the neuron.
-        :type neuron_name: str
+        :param model_name: the name of the neuron.
+        :type model_name: str
         :param path: the path to the file
         :type path: str
         :return: a message
         :rtype: (MessageCode,str)
         """
-        assert (neuron_name is not None and isinstance(neuron_name, str)), \
-            '(PyNestML.Utils.Message) Not a string provided (%s)!' % type(neuron_name)
+        assert (model_name is not None and isinstance(model_name, str)), \
+            '(PyNestML.Utils.Message) Not a string provided (%s)!' % type(model_name)
         assert (path is not None and isinstance(path, str)), \
             '(PyNestML.Utils.Message) Not a string provided (%s)!' % type(path)
-        message = 'Successfully generated code for the neuron: \'' + neuron_name + '\' in: \'' + path + '\' !'
+        message = 'Successfully generated code for the model: \'' + model_name + '\' in: \'' + path + '\' !'
         return MessageCode.CODE_SUCCESSFULLY_GENERATED, message
 
     @classmethod
@@ -491,18 +485,16 @@ class Messages:
         return MessageCode.ARG_NOT_KERNEL_OR_EQUATION, message
 
     @classmethod
-    def get_second_arg_not_a_buffer(cls, func_name):
+    def get_second_arg_not_a_spike_port(cls, func_name: str) -> Tuple[MessageCode, str]:
         """
-        Indicates that the second argument of an rhs is not a buffer.
+        Indicates that the second argument of the NESTML convolve() call is not a spiking input port.
         :param func_name: the name of the function
-        :type func_name: str
         :return: a message
-        :rtype: (MessageCode,str)
         """
         assert (func_name is not None and isinstance(func_name, str)), \
             '(PyNestML.Utils.Message) Not a string provided (%s)!' % type(func_name)
-        message = 'Second argument of \'%s\' not a buffer!' % func_name
-        return MessageCode.ARG_NOT_BUFFER, message
+        message = 'Second argument of \'%s\' not a spiking input port!' % func_name
+        return MessageCode.ARG_NOT_SPIKE_INPUT, message
 
     @classmethod
     def get_wrong_numerator(cls, unit):
@@ -533,9 +525,9 @@ class Messages:
         return MessageCode.ORDER_NOT_DECLARED, message
 
     @classmethod
-    def get_current_buffer_specified(cls, name, keyword):
+    def get_continuous_input_port_specified(cls, name, keyword):
         """
-        Indicates that the current buffer has been specified with a type keyword.
+        Indicates that the continuous time input port has been specified with an `inputQualifier` keyword.
         :param name: the name of the buffer
         :type name: str
         :param keyword: the keyword
@@ -545,8 +537,8 @@ class Messages:
         """
         assert (name is not None and isinstance(name, str)), \
             '(PyNestML.Utils.Message) Not a string provided (%s)!' % name
-        message = 'Current buffer \'%s\' specified with type keywords (%s)!' % (name, keyword)
-        return MessageCode.CURRENT_BUFFER_SPECIFIED, message
+        message = 'Continuous time input port \'%s\' specified with type keywords (%s)!' % (name, keyword)
+        return MessageCode.CONTINUOUS_INPUT_PORT_WITH_QUALIFIERS, message
 
     @classmethod
     def get_block_not_defined_correctly(cls, block, missing):
@@ -570,9 +562,9 @@ class Messages:
         return MessageCode.BLOCK_NOT_CORRECT, message
 
     @classmethod
-    def get_equation_var_not_in_init_values_block(cls, variable_name):
+    def get_equation_var_not_in_state_block(cls, variable_name):
         """
-        Indicates that a variable in the equations block is not defined in the initial values block.
+        Indicates that a variable in the equations block is not defined in the state block.
         :param variable_name: the name of the variable of an equation which is not defined in an equations block
         :type variable_name: str
         :return: a message
@@ -580,8 +572,8 @@ class Messages:
         """
         assert (variable_name is not None and isinstance(variable_name, str)), \
             '(PyNestML.Utils.Message) Not a string provided (%s)!' % type(variable_name)
-        message = 'Ode equation lhs-variable \'%s\' not defined in initial-values block!' % variable_name
-        return MessageCode.VARIABLE_NOT_IN_INIT, message
+        message = 'Ode equation lhs-variable \'%s\' not defined in state block!' % variable_name
+        return MessageCode.VARIABLE_NOT_IN_STATE_BLOCK, message
 
     @classmethod
     def get_wrong_number_of_args(cls, function_call, expected, got):
@@ -656,7 +648,7 @@ class Messages:
     @classmethod
     def get_no_ode(cls, name):
         """
-        Indicates that no ODE has been defined for a variable inside the initial values block.
+        Indicates that no ODE has been defined for a variable inside the state block.
         :param name: the name of the variable which does not have a defined ode
         :type name: str
         :return: a message
@@ -682,20 +674,18 @@ class Messages:
         return MessageCode.NO_INIT_VALUE, message
 
     @classmethod
-    def get_neuron_redeclared(cls, name):
+    def get_model_redeclared(cls, name: str) -> Tuple[MessageCode, str]:
         """
-        Indicates that a neuron has been redeclared.
-        :param name: the name of the neuron which has been redeclared.
-        :type name: str
+        Indicates that a model has been redeclared.
+        :param name: the name of the model which has been redeclared.
         :return: a message
-        :rtype: (MessageCode,str)
         """
         assert (name is not None and isinstance(name, str)), \
             '(PyNestML.Utils.Message) Not a string provided (%s)!' % type(name)
         assert (name is not None and isinstance(name, str)), \
             '(PyNestML.Utils.Message) Not a string provided (%s)!' % type(name)
-        message = 'Neuron \'%s\' redeclared!' % name
-        return MessageCode.NEURON_REDECLARED, message
+        message = 'model \'%s\' redeclared!' % name
+        return MessageCode.MODEL_REDECLARED, message
 
     @classmethod
     def get_nest_collision(cls, name):
@@ -926,6 +916,21 @@ class Messages:
         return MessageCode.NEURON_SOLVED_BY_GSL, message
 
     @classmethod
+    def get_synapse_solved_by_solver(cls, name):
+        """
+        Indicates that a synapse will be solved by the GSL solver inside the model printing process without any
+        modifications to the initial model.
+        :param name: the name of the synapse
+        :type name: str
+        :return: a message
+        :rtype: (MessageCode,str)
+        """
+        assert (name is not None and isinstance(name, str)), \
+            '(PyNestML.Utils.Message) Not a string provided (%s)!' % type(name)
+        message = 'The synapse \'%s\' will be solved numerically with GSL solver without modification!' % name
+        return MessageCode.SYNAPSE_SOLVED_BY_GSL, message
+
+    @classmethod
     def get_neuron_analyzed(cls, name):
         """
         Indicates that the analysis of a neuron will start.
@@ -938,6 +943,20 @@ class Messages:
             '(PyNestML.Utils.Message) Not a string provided (%s)!' % type(name)
         message = 'The neuron \'%s\' will be analysed!' % name
         return MessageCode.NEURON_ANALYZED, message
+
+    @classmethod
+    def get_synapse_analyzed(cls, name):
+        """
+        Indicates that the analysis of a synapse will start.
+        :param name: the name of the synapse which will be analyzed.
+        :type name: str
+        :return: a message
+        :rtype: (MessageCode,str)
+        """
+        assert (name is not None and isinstance(name, str)), \
+            '(PyNestML.Utils.Message) Not a string provided (%s)!' % type(name)
+        message = 'The synapse \'%s\' will be analysed!' % name
+        return MessageCode.SYNAPSE_ANALYZED, message
 
     @classmethod
     def get_could_not_be_solved(cls):
@@ -1102,6 +1121,7 @@ class Messages:
         message = "Unknown type or unit literal: " + provided_type_str
         return MessageCode.UNKNOWN_TYPE, message
 
+
     @classmethod
     def astdatatype_type_symbol_could_not_be_derived(cls):
         """
@@ -1145,7 +1165,7 @@ class Messages:
     def get_kernel_iv_wrong_type(cls, iv_name: str, actual_type: str, expected_type: str) -> Tuple[MessageCode, str]:
         """
         Returns a message indicating that the type of a kernel initial value is wrong.
-        :param iv_name: the name of the initial value variable
+        :param iv_name: the name of the state variable with an initial value
         :param actual_type: the name of the actual type that was found in the model
         :param expected_type: the name of the type that was expected
         """
@@ -1162,3 +1182,28 @@ class Messages:
     def get_no_files_in_input_path(cls, path: str):
         message = "No files found matching '*.nestml' in provided input path '" + path + "'"
         return MessageCode.NO_FILES_IN_INPUT_PATH, message
+
+    @classmethod
+    def get_state_variables_not_initialized(cls, var_name: str):
+        message = "The variable \'%s\' is not initialized." % var_name
+        return MessageCode.STATE_VARIABLES_NOT_INITIALZED, message
+
+    @classmethod
+    def get_equations_defined_but_integrate_odes_not_called(cls):
+        message = "Equations defined but integrate_odes() not called"
+        return MessageCode.EQUATIONS_DEFINED_BUT_INTEGRATE_ODES_NOT_CALLED, message
+
+    @classmethod
+    def get_template_root_path_created(cls, templates_root_dir: str):
+        message = "Given template root path is not an absolute path. " \
+                  "Creating the absolute path with default templates directory '" + templates_root_dir + "'"
+        return MessageCode.TEMPLATE_ROOT_PATH_CREATED, message
+
+    def get_priority_defined_for_only_one_receive_block(cls, event_handler_port_name: str):
+        message = "Priority defined for only one event handler (" + event_handler_port_name + ")"
+        return MessageCode.PRIORITY_DEFINED_FOR_ONLY_ONE_EVENT_HANDLER, message
+
+    @classmethod
+    def get_repeated_priorty_value(cls):
+        message = "Priority values for event handlers need to be unique"
+        return MessageCode.REPEATED_PRIORITY_VALUE, message

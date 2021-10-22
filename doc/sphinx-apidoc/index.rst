@@ -11,6 +11,7 @@ NESTML is a domain-specific language that supports the specification of neuron m
    nestml_language
    installation
    running
+   guides
    models_library/index
    tutorials/index
    pynestml_toolchain/index
@@ -18,6 +19,9 @@ NESTML is a domain-specific language that supports the specification of neuron m
    citing
    license
 
+.. admonition:: **NESTML synapse pre-alpha**
+
+   For information about pre-alpha support for models of synapses and synaptic plasticity, please visit https://nestml-synapse.readthedocs.io/en/latest/synapses_in_nestml.html.
 
 .. .. figure:: nestml-logo/nestml-logo.png
       :scale: 30 %
@@ -41,7 +45,7 @@ Out of the box, use any of :doc:`over 20 models <models_library/index>` that com
 Tutorials
 #########
 
- .. include:: tutorials/tutorials_list.rst
+.. include:: tutorials/tutorials_list.rst
 
 
 NESTML language and toolchain development

@@ -39,7 +39,7 @@ class ASTVariable(ASTNode):
         type_symbol = None
     """
 
-    def __init__(self, name, differential_order=0, type_symbol=None, *args, **kwargs):
+    def __init__(self, name, differential_order=0, type_symbol=None, is_homogeneous=False, *args, **kwargs):
         """
         Standard constructor.
         :param name: the name of the variable
@@ -57,6 +57,7 @@ class ASTVariable(ASTNode):
         self.name = name
         self.differential_order = differential_order
         self.type_symbol = type_symbol
+        self.is_homogeneous = is_homogeneous
 
     def clone(self):
         """
@@ -95,6 +96,9 @@ class ASTVariable(ASTNode):
         """
         self.name = name
 
+    def get_is_homogeneous(self):
+        return self.is_homogeneous
+
     def get_differential_order(self) -> int:
         """
         Returns the differential order of the variable.
@@ -102,9 +106,11 @@ class ASTVariable(ASTNode):
         """
         return self.differential_order
 
-    def set_differential_order(self, differential_order: int) -> None:
+    def set_differential_order(self, differential_order):
         """
-        Set the differential order of the variable.
+        Returns the differential order of the variable.
+        :return: the differential order.
+        :rtype: int
         """
         self.differential_order = differential_order
 

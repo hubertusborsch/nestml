@@ -21,8 +21,6 @@
 
 from typing import Tuple
 
-import copy
-
 from antlr4 import CommonTokenStream, FileStream, InputStream
 from antlr4.error.ErrorStrategy import BailErrorStrategy, DefaultErrorStrategy
 from antlr4.error.ErrorListener import ConsoleErrorListener
@@ -33,7 +31,6 @@ from pynestml.meta_model.ast_arithmetic_operator import ASTArithmeticOperator
 from pynestml.meta_model.ast_assignment import ASTAssignment
 from pynestml.meta_model.ast_block import ASTBlock
 from pynestml.meta_model.ast_block_with_variables import ASTBlockWithVariables
-from pynestml.meta_model.ast_body import ASTBody
 from pynestml.meta_model.ast_comparison_operator import ASTComparisonOperator
 from pynestml.meta_model.ast_compound_stmt import ASTCompoundStmt
 from pynestml.meta_model.ast_data_type import ASTDataType
@@ -138,13 +135,12 @@ class ModelParser:
 
         # create and update the corresponding symbol tables
         SymbolTable.initialize_symbol_table(ast.get_source_position())
-        log_to_restore = copy.deepcopy(Logger.get_log())
-        counter = Logger.curr_message
-
-        Logger.set_log(log_to_restore, counter)
         for neuron in ast.get_neuron_list():
             neuron.accept(ASTSymbolTableVisitor())
             SymbolTable.add_neuron_scope(neuron.get_name(), neuron.get_scope())
+        for synapse in ast.get_synapse_list():
+            synapse.accept(ASTSymbolTableVisitor())
+            SymbolTable.add_synapse_scope(synapse.get_name(), synapse.get_scope())
 
         # store source paths
         for neuron in ast.get_neuron_list():
@@ -210,10 +206,18 @@ class ModelParser:
         return ret
 
     @classmethod
-    def parse_body(cls, string):
-        # type: (str) -> ASTBody
+    def parse_neuron_body(cls, string):
+        # type: (str) -> ASTNeuronBody
         (builder, parser) = tokenize(string)
         ret = builder.visit(parser.body())
+        ret.accept(ASTHigherOrderVisitor(log_set_added_source_position))
+        return ret
+
+    @classmethod
+    def parse_synapse_body(cls, string):
+        # type: (str) -> ASTSynapseBody
+        (builder, parser) = tokenize(string)
+        ret = builder.visit(parser.synapse_body())
         ret.accept(ASTHigherOrderVisitor(log_set_added_source_position))
         return ret
 
@@ -350,6 +354,14 @@ class ModelParser:
         # type: (str) -> ASTNeuron
         (builder, parser) = tokenize(string)
         ret = builder.visit(parser.neuron())
+        ret.accept(ASTHigherOrderVisitor(log_set_added_source_position))
+        return ret
+
+    @classmethod
+    def parse_synapse(cls, string):
+        # type: (str) -> ASTSynapse
+        (builder, parser) = tokenize(string)
+        ret = builder.visit(parser.synapse())
         ret.accept(ASTHigherOrderVisitor(log_set_added_source_position))
         return ret
 
