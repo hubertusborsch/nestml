@@ -376,6 +376,11 @@ double iaf_psc_exp_nonlineardendrite::get_dendritic_firing_rate(){
   return S_.ode_state[State_::z];
 }
 
+double iaf_psc_exp_nonlineardendrite::get_somatic_firing_rate(){
+  return S_.ode_state[State_::s];
+}
+
+
 {%- endif %}
 
 {%- if neuronName == "iaf_cond_nonlineardendrite" %}
